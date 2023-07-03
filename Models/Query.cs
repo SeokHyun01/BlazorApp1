@@ -11,6 +11,6 @@ namespace Models
 		public string? Date { get; set; }
 		public string? UserId { get; set; }
 		public string? Image { get; set; }
-		public IEnumerable<QueryBoundingBox>? BoundingBoxes { get; set; }
+		public IEnumerable<WeakBoundingBox>? BoundingBoxes { get; set; }
 	}
 }

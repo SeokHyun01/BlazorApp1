@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Models
 {
-	public class QueryBoundingBox
+	public class WeakBoundingBox
 	{
 		public float X1 { get; set; }
 		public float Y1 { get; set; }
