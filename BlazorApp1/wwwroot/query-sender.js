@@ -28,6 +28,10 @@ function predict() {
             const image = canvas.toDataURL("image/jpeg");
             if (boxes.length > 0) {
                 draw_boxes(context, boxes);
+                if (boxes.some(box => box.Probability > 0.75)) {
+                    const imageWithBoundingBox = canvas.toDataURL("image/jpeg");
+                    send_event(now, imageWithBoundingBox, boxes);
+                }
                 send_query(now, image, boxes);
             } else {
                 send_image(now, image);
@@ -166,11 +170,13 @@ function send_query(now, image, boxes) {
         Image: image,
         BoundingBoxes: boxesObjectArray,
     };
+
     message = new Paho.MQTT.Message(JSON.stringify(content));
     message.destinationName = `query`;
     if (mqtt_client && mqtt_client.isConnected()) {
         mqtt_client.send(message);
         console.log(`${message.destinationName}으로 메시지가 전송됐습니다.`);
+
     } else {
         console.log(`연결된 클라이언트가 없습니다.`);
     }

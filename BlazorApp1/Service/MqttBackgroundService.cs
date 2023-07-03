@@ -10,6 +10,7 @@ using SixLabors.ImageSharp.Drawing.Processing;
 using DataAccess;
 using System.Threading;
 using System.Text.RegularExpressions;
+using DataAccess.Migrations;
 
 namespace BlazorApp1.Service
 {
@@ -20,7 +21,8 @@ namespace BlazorApp1.Service
 		private IEventRepository? _eventRepositroy;
 		private IBoundingBoxRepository? _boundingBoxRepository;
 
-		private static readonly Font font = new FontCollection().Add(@"/home/shyoun/Desktop/BlazorApp1/BlazorApp1/wwwroot/CONSOLA.TTF").CreateFont(11, FontStyle.Bold);
+		private static readonly string ROOT = @"/home/shyoun/Desktop/BlazorApp1/BlazorApp1/wwwroot";
+		private static readonly Font FONT = new FontCollection().Add(@"/home/shyoun/Desktop/BlazorApp1/BlazorApp1/wwwroot/CONSOLA.TTF").CreateFont(11, FontStyle.Bold);
 
 
 		public MqttBackgroundService(IServiceProvider serviceProvider)
@@ -54,6 +56,61 @@ namespace BlazorApp1.Service
 								throw new ArgumentNullException(nameof(payload));
 							}
 
+							if (e.ApplicationMessage.Topic == "event")
+							{
+								var skipQuery = JsonSerializer.Deserialize<Query>(payload);
+								if (skipQuery == null)
+								{
+									throw new ArgumentNullException(nameof(skipQuery));
+								}
+
+								if (string.IsNullOrEmpty(skipQuery.Image))
+								{
+									throw new ArgumentNullException(nameof(skipQuery.Image));
+								}
+								var image = Convert.FromBase64String(skipQuery.Image.Replace("data:image/jpeg;base64,", string.Empty));
+
+								string? path;
+								using (var stream = new MemoryStream(image))
+								{
+									path = Path.Combine(ROOT, "events", $"{skipQuery.UserId}_{skipQuery.Date}.jpeg");
+									using (var fileStream = new FileStream(path, FileMode.Create))
+									{
+										await stream.CopyToAsync(fileStream);
+									}
+								}
+								path = path.Substring(ROOT.Length + 1);
+
+								var eventDTO = new EventDTO
+								{
+									UserId = skipQuery.UserId,
+									Date = skipQuery.Date,
+									ImagePath = path
+								};
+								var createdEventDTO = await _eventRepositroy.Create(eventDTO);
+
+								var boundingBoxes = new List<BoundingBoxDTO>();
+								foreach (var boundingBox in skipQuery.BoundingBoxes)
+								{
+									var bBox = new BoundingBoxDTO
+									{
+										EventId = createdEventDTO.Id,
+										X1 = boundingBox.X1,
+										Y1 = boundingBox.Y1,
+										Width = boundingBox.X2 - boundingBox.X1,
+										Height = boundingBox.Y2 - boundingBox.Y1,
+										Label = boundingBox.Label,
+										Probability = boundingBox.Probability
+									};
+									boundingBoxes.Add(bBox);
+								}
+								var count = await _boundingBoxRepository.Create(boundingBoxes);
+								if (count <= 0)
+								{
+									throw new Exception($"BoundingBox를 저장하는 데 실패했습니다.");
+								}
+							}
+
 							if (e.ApplicationMessage.Topic == "query")
 							{
 								var query = JsonSerializer.Deserialize<Query>(payload);
@@ -76,21 +133,19 @@ namespace BlazorApp1.Service
 									throw new ArgumentNullException(nameof(query.Image));
 								}
 								var image = Convert.FromBase64String(query.Image.Replace("data:image/jpeg;base64,", string.Empty));
-
-								var root = @"/home/shyoun/Desktop/BlazorApp1/BlazorApp1/wwwroot";
-
-								string? path;
+								
+								string? queryImagePath;
 								using (var stream = new MemoryStream(image))
 								{
-									path = Path.Combine(root, "queries", $"{query.UserId}_{query.Date}.jpeg");
-									using (var fileStream = new FileStream(path, FileMode.Create))
+									queryImagePath = Path.Combine(ROOT, "queries", $"{query.UserId}_{query.Date}.jpeg");
+									using (var fileStream = new FileStream(queryImagePath, FileMode.Create))
 									{
 										await stream.CopyToAsync(fileStream);
 									}
 								}
 
 								using var model = YoloV8Predictor.Create(@"/home/shyoun/Desktop/BlazorApp1/BlazorApp1/wwwroot/models/yolov8l.onnx");
-								using var input = Image.Load(path);
+								using var input = Image.Load(queryImagePath);
 								if (model == null)
 								{
 									throw new ArgumentNullException(nameof(model));
@@ -115,10 +170,9 @@ namespace BlazorApp1.Service
 									var width = (int)Math.Min(originalImageWidth - x, prediction.Rectangle.Width);
 									var height = (int)Math.Min(originalImageHeight - y, prediction.Rectangle.Height);
 									var text = $"{prediction.Label.Name}: {prediction.Score}";
-									var size = TextMeasurer.Measure(text, new TextOptions(font));
+									var size = TextMeasurer.Measure(text, new TextOptions(FONT));
 									input.Mutate(d => d.Draw(Pens.Solid(Color.Yellow, 2), new Rectangle(x, y, width, height)));
-									input.Mutate(d => d.DrawText(new TextOptions(font) { Origin = new Point(x, (int)(y - size.Height - 1)) }, text, Color.Yellow));
-
+									input.Mutate(d => d.DrawText(new TextOptions(FONT) { Origin = new Point(x, (int)(y - size.Height - 1)) }, text, Color.Yellow));
 									var boundingBox = new BoundingBoxDTO
 									{
 										X1 = x,
@@ -130,15 +184,15 @@ namespace BlazorApp1.Service
 									};
 									boundingBoxes.Add(boundingBox);
 								}
-								var imagePath = Path.Combine(root, "events", $"{query.UserId}_{query.Date}.jpeg");
-								input.Save(imagePath);
 
-								imagePath = imagePath.Substring(root.Length + 1);
+								var eventImagePath = Path.Combine(ROOT, "events", $"{query.UserId}_{query.Date}.jpeg");
+								input.Save(eventImagePath);
+								eventImagePath = eventImagePath.Substring(ROOT.Length + 1);
 								var eventDTO = new EventDTO
 								{
 									UserId = query.UserId,
 									Date = query.Date,
-									ImagePath = imagePath
+									ImagePath = eventImagePath
 								};
 								var createdEventDTO = await _eventRepositroy.Create(eventDTO);
 
@@ -146,16 +200,15 @@ namespace BlazorApp1.Service
 								{
 									boundingBox.EventId = createdEventDTO.Id;
 								}
-
 								var count = await _boundingBoxRepository.Create(boundingBoxes);
 								if (count <= 0)
 								{
 									throw new Exception($"BoundingBox를 저장하는 데 실패했습니다.");
 								}
 
-								if (File.Exists(path))
+								if (File.Exists(queryImagePath))
 								{
-									File.Delete(path);
+									File.Delete(queryImagePath);
 								}
 							}
 						}
