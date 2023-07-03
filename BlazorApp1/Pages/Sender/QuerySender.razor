@@ -1,0 +1,36 @@
+﻿@page "/sender/query"
+@inject IJSRuntime _jsRuntime
+@implements IAsyncDisposable
+
+
+<video id="video" width="640" height="640"></video>
+
+<canvas></canvas>
+
+
+@code {
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			//var id = Guid.NewGuid().ToString();
+			var id = "04cec5fb-256f-4c50-8ed5-d5ffeb54b66d";
+			await _jsRuntime.InvokeVoidAsync("connect_mqtt_client", id);
+			await _jsRuntime.InvokeVoidAsync("start_video", "video");
+			await _jsRuntime.InvokeVoidAsync("predict");
+		}
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		try
+		{
+			await _jsRuntime.InvokeVoidAsync("stop_video", "video");
+			await _jsRuntime.InvokeVoidAsync("unload");
+
+		} catch(Exception ex)
+		{
+			Console.WriteLine($"{ex.GetType()}: {ex.Message}");
+		}
+	}
+}

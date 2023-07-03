@@ -1,0 +1,129 @@
+﻿@page "/event"
+@inject IEventRepository _eventRepository
+
+
+@if (IsLoading)
+{
+	<div class="spinner-border text-primary" role="status"></div>
+}
+else
+{
+	if (AllEvents.Any())
+	{
+		@foreach (var group in GroupedEventsByDate)
+		{
+			<div id="carousel-@group.Key" class="carousel slide" data-ride="carousel">
+				<!-- Indicators -->
+				<ol class="carousel-indicators">
+					@for (var i = 0; i < Math.Ceiling(group.Value.Count / 4.0); i++)
+					{
+						<li data-target="#carousel-@group.Key" data-slide-to="@i" class="@(i == 0 ? "active" : "")"></li>
+					}
+				</ol>
+
+				<!-- Wrapper for slides -->
+				<div class="carousel-inner" role="listbox">
+					@for (var i = 0; i < group.Value.Count; i += 4)
+					{
+						<div class="carousel-item @(i == 0 ? "active" : "")">
+							@for (var j = 0; j < 4 && i + j < group.Value.Count; j++)
+							{
+								<div>
+									<img src="@group.Value[i + j].ImagePath" alt="Image @(i+j+1)" style="width:50%;">
+									<p>@group.Value[i + j].Date</p>
+								</div>
+							}
+						</div>
+					}
+				</div>
+
+				<!-- Left and right controls -->
+				<a class="carousel-control-prev" href="#carousel-@group.Key" data-slide="prev">
+					<span class="carousel-control-prev-icon"></span>
+				</a>
+				<a class="carousel-control-next" href="#carousel-@group.Key" data-slide="next">
+					<span class="carousel-control-next-icon"></span>
+				</a>
+			</div>
+		}
+	}
+	else
+	{
+		<p>No recrods found.</p>
+	}
+}
+
+
+<style>
+	.carousel-item {
+		width: 100%;
+	}
+
+		.carousel-item div {
+			float: left;
+			width: 25%;
+		}
+
+		.carousel-item img {
+			width: 100%;
+			height: auto;
+		}
+</style>
+
+
+@code {
+	private bool IsLoading { get; set; } = false;
+	private string id { get; set; } = "04cec5fb-256f-4c50-8ed5-d5ffeb54b66d";
+	private IEnumerable<EventDTO> AllEvents { get; set; } = Enumerable.Empty<EventDTO>();
+	private Dictionary<string, List<EventDTO>> GroupedEventsByDate { get; set; } = new Dictionary<string, List<EventDTO>>();
+
+
+	protected async override Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			try
+			{
+				await LoadEvents(id);
+
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"{ex.GetType()}: {ex.Message}");
+			}
+		}
+	}
+
+	private async ValueTask LoadEvents(string id)
+	{
+		IsLoading = true;
+		StateHasChanged();
+
+		AllEvents = await _eventRepository.GetAll(id);
+
+		var format = "yyyyMMddTHHmmss";
+		foreach (var eventDTO in AllEvents)
+		{
+			DateTime date;
+			if (DateTime.TryParseExact(eventDTO.Date, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out date))
+			{
+				var monthAndDay = date.ToString("MMdd");
+				if (!GroupedEventsByDate.ContainsKey(monthAndDay))
+				{
+					GroupedEventsByDate[monthAndDay] = new List<EventDTO> { eventDTO };
+				}
+				else
+				{
+					GroupedEventsByDate[monthAndDay].Add(eventDTO);
+				}
+			}
+			else
+			{
+				throw new Exception("올바르지 않은 형식의 타임스탬프 입니다.");
+			}
+		}
+
+		IsLoading = false;
+		StateHasChanged();
+	}
+}
