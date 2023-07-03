@@ -20,7 +20,7 @@ namespace BlazorApp1.Service
 		private IEventRepository? _eventRepositroy;
 		private IBoundingBoxRepository? _boundingBoxRepository;
 
-		private static readonly Font font = new FontCollection().Add(@"C:\Users\hisn16.DESKTOP-HGVGADP\source\repos\BlazorApp1\BlazorApp1\wwwroot\CONSOLA.TTF").CreateFont(11, FontStyle.Bold);
+		private static readonly Font font = new FontCollection().Add(@"/home/shyoun/Desktop/BlazorApp1/BlazorApp1/wwwroot/CONSOLA.TTF").CreateFont(11, FontStyle.Bold);
 
 
 		public MqttBackgroundService(IServiceProvider serviceProvider)
@@ -77,7 +77,7 @@ namespace BlazorApp1.Service
 								}
 								var image = Convert.FromBase64String(query.Image.Replace("data:image/jpeg;base64,", string.Empty));
 
-								var root = @"C:\Users\hisn16.DESKTOP-HGVGADP\source\repos\BlazorApp1\BlazorApp1\wwwroot";
+								var root = @"/home/shyoun/Desktop/BlazorApp1/BlazorApp1/wwwroot";
 
 								string? path;
 								using (var stream = new MemoryStream(image))
@@ -89,7 +89,7 @@ namespace BlazorApp1.Service
 									}
 								}
 
-								using var model = YoloV8Predictor.Create(@"C:\Users\hisn16.DESKTOP-HGVGADP\source\repos\BlazorApp1\BlazorApp1\wwwroot\models\yolov8l.onnx");
+								using var model = YoloV8Predictor.Create(@"/home/shyoun/Desktop/BlazorApp1/BlazorApp1/wwwroot/models/yolov8l.onnx");
 								using var input = Image.Load(path);
 								if (model == null)
 								{
