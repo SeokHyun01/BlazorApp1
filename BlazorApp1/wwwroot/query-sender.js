@@ -1,5 +1,6 @@
 ﻿let worker;
 
+
 function predict() {
     const video = document.querySelector("video");
     const canvas = document.querySelector("canvas");
@@ -191,10 +192,12 @@ function send_image(now, image) {
     }
 }
 
+
 let id;
 let mqtt_client;
 
 let intervalId;
+
 
 function connect_mqtt_client(client_id) {
     id = client_id;
@@ -209,7 +212,10 @@ function connect_mqtt_client(client_id) {
 }
 
 function unload() {
-    worker.onmessage = null;
+    if (worker) {
+        worker.onmessage = null;
+        worker = null;
+    }
 
     if (intervalId) {
         clearInterval(intervalId);
