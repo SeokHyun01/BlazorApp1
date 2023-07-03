@@ -9,7 +9,13 @@ onmessage = async event => {
     busy = true;
 
     const input = event.data;
+    const startTime = new Date();
     const output = await run_model(input);
+    var endTime = new Date();
+    var elapsedTime = endTime - startTime;
+
+    console.log(elapsedTime);
+
     postMessage(output);
     busy = false;
 }

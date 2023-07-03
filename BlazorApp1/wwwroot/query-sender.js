@@ -1,8 +1,10 @@
-﻿function predict() {
+﻿let worker;
+
+function predict() {
     const video = document.querySelector("video");
     const canvas = document.querySelector("canvas");
     const context = canvas.getContext("2d");
-    const worker = new Worker("worker.js");
+    worker = new Worker("worker.js");
 
     let boxes = [];
 
@@ -207,6 +209,8 @@ function connect_mqtt_client(client_id) {
 }
 
 function unload() {
+    worker.onmessage = null;
+
     if (intervalId) {
         clearInterval(intervalId);
     }
