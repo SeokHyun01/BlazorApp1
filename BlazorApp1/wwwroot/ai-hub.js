@@ -172,7 +172,11 @@ function send_result(topic, now, image, boxes) {
         BoundingBoxes: boxesObjectArray,
     };
 
-    message = new Paho.MQTT.Message(JSON.stringify(content));
+    const jsonString = JSON.stringify(content);
+    const messageSize = Buffer.byteLength(jsonString, 'utf8');
+    console.log(`메시지 크기: ${messageSize} bytes`);
+
+    message = new Paho.MQTT.Message(jsonString);
     message.destinationName = topic;
     if (mqtt_client && mqtt_client.isConnected()) {
         console.time(`${message.destinationName}으로 메시지가 전송됐습니다`);
@@ -190,7 +194,10 @@ function send_image(now, image) {
         UserId: id,
         Image: image
     };
-    message = new Paho.MQTT.Message(JSON.stringify(content));
+    const jsonString = JSON.stringify(content);
+    const messageSize = Buffer.byteLength(jsonString, 'utf8');
+    console.log(`메시지 크기: ${messageSize} bytes`);
+    message = new Paho.MQTT.Message(jsonString);
     message.destinationName = `image-${id}`;
     if (mqtt_client && mqtt_client.isConnected()) {
         console.time(`${message.destinationName}으로 메시지가 전송됐습니다`);
