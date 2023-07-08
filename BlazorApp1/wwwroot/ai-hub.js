@@ -176,8 +176,11 @@ function send_result(topic, now, image, boxes) {
     message.destinationName = topic;
     if (mqtt_client && mqtt_client.isConnected()) {
         mqtt_client.send(message);
-        const currentTime = new Date().toISOString();
-        console.log(`${currentTime}: ${message.destinationName}으로 메시지를 전송했습니다`);
+
+        const currentTime = new Date();
+        const utc = currentTime.getTime() + (currentTime.getTimezoneOffset() * 60 * 1000);
+        const koreaTime = utc + (9 * 60 * 60 * 1000);
+        console.log(`${new Date(koreaTime).toISOString()}: ${message.destinationName}으로 메시지를 전송했습니다`);
 
     } else {
         console.log(`연결된 클라이언트가 없습니다.`);
