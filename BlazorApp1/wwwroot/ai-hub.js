@@ -89,7 +89,7 @@ function process_output(output, image_width, image_height) {
             .map(col => [col, output[8400 * (col + 4) + i]])
             .reduce((accum, item) => item[1] > accum[1] ? item : accum, [0, 0]);
 
-        if (prob < 0.5) {
+        if (prob < 0.001) {
             continue;
         }
 
@@ -109,7 +109,7 @@ function process_output(output, image_width, image_height) {
     const result = [];
     while (boxes.length > 0) {
         result.push(boxes[0]);
-        boxes = boxes.filter(box => iou(boxes[0], box) < 0.7 || boxes[0][4] !== box[4]);
+        boxes = boxes.filter(box => iou(boxes[0], box) < 0.6 || boxes[0][4] !== box[4]);
     }
 
     return result;
