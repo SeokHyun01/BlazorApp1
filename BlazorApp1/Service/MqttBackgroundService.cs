@@ -45,10 +45,8 @@ namespace BlazorApp1.Service
 
 					Func<MqttApplicationMessageReceivedEventArgs, Task> query = async e =>
 					{
-						TimeZoneInfo kst = TimeZoneInfo.FindSystemTimeZoneById("Korea Standard Time");
-						DateTime currentTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, kst);
-						var formattedTime = currentTime.ToString("yyyy-MM-ddTHH:mm:ss.fff") + 'Z';
-						Console.WriteLine(formattedTime);
+						var currentTime = DateTime.UtcNow.ToString("o");
+						Console.WriteLine(currentTime);
 
 						using (var scope = _serviceProvider.CreateScope())
 						{
