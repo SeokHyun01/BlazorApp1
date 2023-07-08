@@ -45,6 +45,10 @@ namespace BlazorApp1.Service
 
 					Func<MqttApplicationMessageReceivedEventArgs, Task> query = async e =>
 					{
+						var currentTime = DateTime.Now;
+						var topic = e.ApplicationMessage.Topic;
+						Console.WriteLine($"{topic}에서 {currentTime}에 메시지를 수신했습니다.");
+
 						using (var scope = _serviceProvider.CreateScope())
 						{
 							_eventRepositroy = scope.ServiceProvider.GetRequiredService<IEventRepository>();
