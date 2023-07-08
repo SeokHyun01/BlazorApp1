@@ -171,12 +171,8 @@ function send_result(topic, now, image, boxes) {
         Image: image,
         BoundingBoxes: boxesObjectArray,
     };
-
-    const jsonString = JSON.stringify(content);
-    const messageSize = Buffer.byteLength(jsonString, 'utf8');
-    console.log(`메시지 크기: ${messageSize} bytes`);
-
-    message = new Paho.MQTT.Message(jsonString);
+    get_message_size(content);
+    message = new Paho.MQTT.Message(JSON.stringify(content));
     message.destinationName = topic;
     if (mqtt_client && mqtt_client.isConnected()) {
         console.time(`${message.destinationName}으로 메시지가 전송됐습니다`);
@@ -194,10 +190,8 @@ function send_image(now, image) {
         UserId: id,
         Image: image
     };
-    const jsonString = JSON.stringify(content);
-    const messageSize = Buffer.byteLength(jsonString, 'utf8');
-    console.log(`메시지 크기: ${messageSize} bytes`);
-    message = new Paho.MQTT.Message(jsonString);
+    get_message_size(content);
+    message = new Paho.MQTT.Message(JSON.stringify(content));
     message.destinationName = `image-${id}`;
     if (mqtt_client && mqtt_client.isConnected()) {
         console.time(`${message.destinationName}으로 메시지가 전송됐습니다`);
@@ -206,6 +200,17 @@ function send_image(now, image) {
     } else {
         console.log(`연결된 클라이언트가 없습니다.`);
     }
+}
+
+function get_message_size(jsonObject) {
+    const jsonString = JSON.stringify(jsonObject);
+    const blob = new Blob([jsonString], { type: 'text/plain' });
+    const reader = new FileReader();
+    reader.onload = () => {
+        const messageSize = reader.result.byteLength;
+        console.log(`메시지 크기: ${messageSize} bytes`);
+    }
+    reader.readAsArrayBuffer(blob);
 }
 
 
