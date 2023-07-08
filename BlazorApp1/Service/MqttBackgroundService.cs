@@ -46,7 +46,7 @@ namespace BlazorApp1.Service
 					Func<MqttApplicationMessageReceivedEventArgs, Task> query = async e =>
 					{
 						var currentTime = DateTime.UtcNow.ToString("o");
-						Console.WriteLine(currentTime);
+						Console.WriteLine($"{currentTime}: {e.ApplicationMessage.Topic} topic으로 메시지를 받았습니다.");
 
 						using (var scope = _serviceProvider.CreateScope())
 						{
