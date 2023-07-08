@@ -175,9 +175,9 @@ function send_result(topic, now, image, boxes) {
     message = new Paho.MQTT.Message(JSON.stringify(content));
     message.destinationName = topic;
     if (mqtt_client && mqtt_client.isConnected()) {
-        console.time(`${message.destinationName}으로 메시지가 전송됐습니다`);
         mqtt_client.send(message);
-        console.timeEnd(`${message.destinationName}으로 메시지가 전송됐습니다`);
+        const currentTime = new Date().toISOString();
+        console.log(`${currentTime}: ${message.destinationName}으로 메시지를 전송했습니다`);
 
     } else {
         console.log(`연결된 클라이언트가 없습니다.`);
@@ -190,13 +190,11 @@ function send_image(now, image) {
         UserId: id,
         Image: image
     };
-    get_message_size(content);
     message = new Paho.MQTT.Message(JSON.stringify(content));
     message.destinationName = `image-${id}`;
     if (mqtt_client && mqtt_client.isConnected()) {
-        console.time(`${message.destinationName}으로 메시지가 전송됐습니다`);
         mqtt_client.send(message);
-        console.timeEnd(`${message.destinationName}으로 메시지가 전송됐습니다`);
+        console.log(`${message.destinationName}으로 메시지를 전송했습니다`);
     } else {
         console.log(`연결된 클라이언트가 없습니다.`);
     }
