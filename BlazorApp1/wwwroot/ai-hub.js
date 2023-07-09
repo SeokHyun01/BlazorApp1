@@ -16,13 +16,13 @@ function predict() {
         intervalId = setInterval(() => {
             context.drawImage(video, 0, 0);
 
+            const now = get_current_time();
             const image = canvas.toDataURL("image/jpeg");
             if (boxes.length <= 0) {
                 send_image(now, image);
             }
 
             const input = preprocess_input(canvas);
-            const now = get_current_time();
             worker.postMessage({ input, now, image });
         }, 100);
     });
