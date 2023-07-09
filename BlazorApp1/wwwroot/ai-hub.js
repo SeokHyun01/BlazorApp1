@@ -98,7 +98,6 @@ function process_output(output, image_width, image_height) {
             continue;
         }
 
-        const label = yolo_classes[class_id];
         const xc = output[i];
         const yc = output[8400 + i];
         const w = output[2 * 8400 + i];
