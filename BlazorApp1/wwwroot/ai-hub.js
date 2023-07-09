@@ -189,7 +189,7 @@ function send_image(now, image) {
         Image: image
     };
     message = new Paho.MQTT.Message(JSON.stringify(content));
-    message.destinationName = `image-${id}`;
+    message.destinationName = `image`;
     if (mqtt_client && mqtt_client.isConnected()) {
         mqtt_client.send(message);
         console.log(`${message.destinationName}으로 메시지를 전송했습니다`);
@@ -223,7 +223,6 @@ function get_message_size(jsonObject) {
 
 let id;
 let mqtt_client;
-
 let intervalId;
 
 
