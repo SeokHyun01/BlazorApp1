@@ -16,25 +16,22 @@ function predict() {
         intervalId = setInterval(() => {
             context.drawImage(video, 0, 0);
 
-            const now = get_current_time();
             const image = canvas.toDataURL("image/jpeg");
             if (boxes.length <= 0) {
                 send_image(now, image);
             }
 
             const input = preprocess_input(canvas);
-            worker.postMessage(input);
+            const now = get_current_time();
+            worker.postMessage({ input, now, image });
         }, 100);
     });
 
     worker.onmessage = (event) => {
-        const output = event.data;
+        const { output, now, image } = event.data;
         const canvas = document.querySelector("canvas");
         boxes = process_output(output, canvas.width, canvas.height);
         if (boxes.length > 0) {
-            const now = get_current_time();
-
-            const image = canvas.toDataURL("image/jpeg");
             if (boxes.some(box => box.Probability > 0.75)) {
                 send_result(`event`, now, image, boxes);
 

@@ -6,17 +6,11 @@ onmessage = async event => {
     if (busy) {
         return;
     }
+
     busy = true;
-
-    const input = event.data;
-    const startTime = new Date();
+    const { input, now, image } = event.data;
     const output = await run_model(input);
-    var endTime = new Date();
-    var elapsedTime = endTime - startTime;
-
-    console.log(elapsedTime);
-
-    postMessage(output);
+    postMessage({ output, now, image });
     busy = false;
 }
 
