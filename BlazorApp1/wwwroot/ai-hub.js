@@ -16,26 +16,10 @@ function predict() {
         intervalId = setInterval(() => {
             context.drawImage(video, 0, 0);
 
-            const date = new Date();
-            const year = date.getFullYear();
-            const month = ("0" + (date.getMonth() + 1)).slice(-2);
-            const day = ("0" + date.getDate()).slice(-2);
-            const hours = ("0" + date.getHours()).slice(-2);
-            const minutes = ("0" + date.getMinutes()).slice(-2);
-            const seconds = ("0" + date.getSeconds()).slice(-2);
-            const now = year + month + day + "T" + hours + minutes + seconds;
-
-            const imageWithoutBoundingBox = canvas.toDataURL("image/jpeg");
-            if (boxes.length > 0) {
-                draw_boxes(context, boxes);
-                if (boxes.some(box => box.Probability > 0.75)) {
-                    const imageWithBoundingBox = canvas.toDataURL("image/jpeg");
-                    send_result(`event`, now, imageWithBoundingBox, boxes);
-                } else {
-                    send_result(`query`, now, imageWithoutBoundingBox, boxes);
-                }
-            } else {
-                send_image(now, imageWithoutBoundingBox);
+            const now = get_current_time();
+            const image = canvas.toDataURL("image/jpeg");
+            if (boxes.length <= 0) {
+                send_image(now, image);
             }
 
             const input = preprocess_input(canvas);
@@ -47,6 +31,18 @@ function predict() {
         const output = event.data;
         const canvas = document.querySelector("canvas");
         boxes = process_output(output, canvas.width, canvas.height);
+        if (boxes.length > 0) {
+            const now = get_current_time();
+
+            const image = canvas.toDataURL("image/jpeg");
+            if (boxes.some(box => box.Probability > 0.75)) {
+                send_result(`event`, now, image, boxes);
+
+            } else {
+                send_result(`query`, now, image, boxes);
+            }
+        }
+        boxes = [];
     };
 }
 
@@ -203,6 +199,17 @@ function send_image(now, image) {
     } else {
         console.log(`연결된 클라이언트가 없습니다.`);
     }
+}
+
+function get_current_time() {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = ("0" + (date.getMonth() + 1)).slice(-2);
+    const day = ("0" + date.getDate()).slice(-2);
+    const hours = ("0" + date.getHours()).slice(-2);
+    const minutes = ("0" + date.getMinutes()).slice(-2);
+    const seconds = ("0" + date.getSeconds()).slice(-2);
+    return year + month + day + "T" + hours + minutes + seconds;
 }
 
 function get_message_size(jsonObject) {
