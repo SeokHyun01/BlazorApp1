@@ -147,7 +147,7 @@ namespace BlazorApp1.Service
 									}
 								}
 
-								using var model = YoloV8Predictor.Create(@"/home/shyoun/Desktop/BlazorApp1/BlazorApp1/wwwroot/models/yolov8l.onnx");
+								using var model = YoloV8Predictor.Create(@"/home/shyoun/Desktop/BlazorApp1/BlazorApp1/wwwroot/models/yolov8l.onnx", useCuda: true);
 								using var input = Image.Load(queryImagePath);
 								if (model == null)
 								{
