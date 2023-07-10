@@ -18,9 +18,7 @@ function predict() {
 
             const now = get_current_time();
             const image = canvas.toDataURL("image/jpeg");
-            if (boxes.length <= 0) {
-                send_image(now, image);
-            }
+            send_image(now, image);
 
             const input = preprocess_input(canvas);
             worker.postMessage({ input, now, image });
